@@ -14,21 +14,11 @@
       max-width: 680px;
       padding: 0;
       line-height: 1;
+      transition: background 0.4s ease;
     }
-    h1, h2 {
-      font-family: 'Carlito';
-      color: #8B4513;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 0.1rem;
-    }
-    h2 {
-      font-size: 1.2rem;
-      margin-top: 1rem;
-      margin-bottom: 0.2rem;
-      border-bottom: 1px solid black;
-    }
+    h1, h2 { font-family: 'Carlito'; color: #8B4513; }
+    h1 { font-size: 2rem; margin-bottom: 0.1rem; }
+    h2 { font-size: 1.2rem; margin-top: 1rem; margin-bottom: 0.2rem; border-bottom: 1px solid black; }
     p { margin-bottom: 0.3rem; }
     a { color: #CC0000; text-decoration: underline; }
     a:visited { color: #880000; }
@@ -38,31 +28,112 @@
     hr { border: none; border-top: 1px solid black; margin: 0.8rem 0; }
     .subtitle { font-style: italic; margin-bottom: 0.3rem; }
     .abstract-toggle {
-      font-size: 0.9rem;
-      color: #CC0000;
-      cursor: pointer;
-      text-decoration: underline;
-      background: none;
-      border: none;
-      padding: 0;
-      font-family: 'EB Garamond', serif;
+      font-size: 0.9rem; color: #CC0000; cursor: pointer;
+      text-decoration: underline; background: none; border: none;
+      padding: 0; font-family: 'EB Garamond', serif;
     }
     .abstract-toggle:hover { color: #FF0000; }
     .abstract {
-      display: none;
-      margin-top: 0.3rem;
-      margin-bottom: 0.3rem;
-      padding-left: 1rem;
-      border-left: 2px solid #CC0000;
-      font-size: 0.95rem;
-      line-height: 1.4;
+      display: none; margin-top: 0.3rem; margin-bottom: 0.3rem;
+      padding-left: 1rem; border-left: 2px solid #CC0000;
+      font-size: 0.95rem; line-height: 1.4;
     }
     footer {
+      margin-top: 1rem; font-size: 0.85rem; color: black;
+      border-top: 1px solid black; padding-top: 0.3rem;
+    }
+
+    /* Disco button */
+    .disco-btn {
       margin-top: 1rem;
+      font-family: 'Times New Roman', serif;
+      background: none;
+      border: 1px solid #8B4513;
+      color: #8B4513;
+      padding: 4px 10px;
+      cursor: pointer;
       font-size: 0.85rem;
-      color: black;
-      border-top: 1px solid black;
-      padding-top: 0.3rem;
+    }
+    .disco-btn:hover { background: #8B4513; color: white; }
+
+    /* Disco globe */
+    #disco-globe {
+      display: none;
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%,
+        #ffffff 0%, #cccccc 15%, #888888 40%,
+        #444444 70%, #111111 100%);
+      box-shadow:
+        0 0 20px 6px rgba(255,255,255,0.6),
+        inset 0 0 15px rgba(255,255,255,0.3);
+      z-index: 9999;
+      animation: globeDrop 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Sparkle tiles on globe */
+    #disco-globe::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 8px,
+          rgba(255,255,255,0.15) 8px,
+          rgba(255,255,255,0.15) 9px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 8px,
+          rgba(255,255,255,0.15) 8px,
+          rgba(255,255,255,0.15) 9px
+        );
+      border-radius: 50%;
+      animation: globeSpin 2s linear infinite;
+    }
+
+    /* Light beams */
+    #disco-globe::after {
+      content: '';
+      position: absolute;
+      inset: -30px;
+      border-radius: 50%;
+      background: conic-gradient(
+        rgba(255, 0, 200, 0.3) 0deg,
+        transparent 30deg,
+        rgba(0, 200, 255, 0.3) 90deg,
+        transparent 120deg,
+        rgba(255, 255, 0, 0.3) 180deg,
+        transparent 210deg,
+        rgba(255, 0, 200, 0.3) 360deg
+      );
+      animation: beamSpin 1.5s linear infinite;
+      z-index: -1;
+    }
+
+    @keyframes globeDrop {
+      0%   { top: -120px; opacity: 0; }
+      60%  { top: 45%; opacity: 1; }
+      75%  { top: 42%; }
+      100% { top: 44%; opacity: 1; }
+    }
+
+    @keyframes globeSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    @keyframes beamSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -93,9 +164,14 @@
   <p>Email: luca_passi@berkeley.edu</p>
   <p><a href="https://philpeople.org/profiles/luca-alberto-passi" target="_blank">PhilPeople</a></p>
 
+  <button id="disco-btn" class="disco-btn" onclick="toggleDisco()">🪩 Disco Mode</button>
+
+  <div id="disco-globe"></div>
+
   <footer>&copy; 2026 Luca Passi</footer>
 
   <script>
+    // ---- Abstract toggle ----
     function toggleAbstract() {
       var abs = document.getElementById('abstract-pna');
       var btn = document.querySelector('.abstract-toggle');
@@ -105,6 +181,118 @@
       } else {
         abs.style.display = 'block';
         btn.textContent = 'Abstract ▾';
+      }
+    }
+
+    // ---- Disco Mode ----
+    let discoOn = false;
+    let audioCtx = null;
+    let beatInterval = null;
+    let colorInterval = null;
+    let step = 0;
+
+    const discoColors = ['#ff6ec7', '#6ef9ff', '#f9ff6e'];
+    let colorStep = 0;
+
+    function cycleDiscoColor() {
+      document.body.style.background = discoColors[colorStep];
+      colorStep = (colorStep + 1) % discoColors.length;
+    }
+
+    function kick(ctx, time) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(150, time);
+      osc.frequency.exponentialRampToValueAtTime(0.001, time + 0.4);
+      gain.gain.setValueAtTime(1, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.4);
+      osc.start(time); osc.stop(time + 0.4);
+    }
+
+    function hihat(ctx, time, accent) {
+      const bufferSize = ctx.sampleRate * 0.05;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'highpass'; filter.frequency.value = 8000;
+      source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(accent ? 0.4 : 0.15, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+      source.start(time); source.stop(time + 0.05);
+    }
+
+    function stab(ctx, time, freq) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, time);
+      osc.connect(gain); gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.3, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+      osc.start(time); osc.stop(time + 0.1);
+    }
+
+    const bpm = 138;
+    const stepTime = 60 / bpm / 2;
+    const kickPattern  = [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0];
+    const hihatPattern = [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1];
+    const hihatAccent  = [1,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0];
+    const stabPattern  = [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,1];
+    const stabFreqs    = [220, 165, 196];
+
+    function scheduleBeat() {
+      const now = audioCtx.currentTime;
+      if (kickPattern[step])  kick(audioCtx, now);
+      if (hihatPattern[step]) hihat(audioCtx, now, hihatAccent[step]);
+      if (stabPattern[step])  stab(audioCtx, now, stabFreqs[step % stabFreqs.length]);
+      step = (step + 1) % 16;
+    }
+
+    function toggleDisco() {
+      const btn = document.getElementById('disco-btn');
+      const globe = document.getElementById('disco-globe');
+
+      if (!discoOn) {
+        // Start disco
+        discoOn = true;
+        btn.textContent = '⏹ Stop Disco';
+
+        // Show globe with animation
+        globe.style.display = 'block';
+        globe.style.animation = 'none';
+        void globe.offsetWidth; // force reflow
+        globe.style.animation = 'globeDrop 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards';
+
+        // Start colors
+        colorStep = 0;
+        cycleDiscoColor();
+        colorInterval = setInterval(cycleDiscoColor, 1000);
+
+        // Start beat
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        step = 0;
+        beatInterval = setInterval(scheduleBeat, stepTime * 1000);
+
+      } else {
+        // Stop disco
+        discoOn = false;
+        btn.textContent = '🪩 Disco Mode';
+
+        // Hide globe
+        globe.style.display = 'none';
+
+        // Stop colors
+        clearInterval(colorInterval);
+        document.body.style.background = '#F5DFA0';
+
+        // Stop beat
+        clearInterval(beatInterval);
+        audioCtx.close();
       }
     }
   </script>
