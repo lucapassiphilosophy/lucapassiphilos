@@ -60,6 +60,13 @@
       z-index: 9999;
       display: none;
     }
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 9998;
+    }
 
     /* PowerPoint-style fly-in from the right */
     @keyframes pptFlyIn {
@@ -100,7 +107,114 @@
   <p>Email: luca_passi@berkeley.edu</p>
   <p><a href="https://philpeople.org/profiles/luca-alberto-passi" target="_blank">PhilPeople</a></p>
 
+  <canvas id="confetti-canvas"></canvas>
+
   <script>
+    // ── Confetti & stars burst ──────────────────────────────────────────────
+    const canvas  = document.getElementById('confetti-canvas');
+    const ctx     = canvas.getContext('2d');
+    let particles = [];
+    let animId    = null;
+
+    const COLORS  = ['#CC0000','#FFD700','#8B4513','#4169E1','#228B22','#FF69B4','#FF8C00'];
+    const SHAPES  = ['rect', 'star'];
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function randomBetween(a, b) { return a + Math.random() * (b - a); }
+
+    function drawStar(cx, cy, r, rotation) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rotation);
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        const x = r * Math.cos(angle);
+        const y = r * Math.sin(angle);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function spawnParticles(originX, originY) {
+      for (let i = 0; i < 90; i++) {
+        const shape = SHAPES[Math.random() < 0.35 ? 1 : 0];
+        const angle = randomBetween(0, Math.PI * 2);
+        const speed = randomBetween(2, 9);
+        particles.push({
+          x:        originX,
+          y:        originY,
+          vx:       Math.cos(angle) * speed,
+          vy:       Math.sin(angle) * speed - randomBetween(1, 4),
+          color:    COLORS[Math.floor(Math.random() * COLORS.length)],
+          shape:    shape,
+          size:     randomBetween(5, 13),
+          rotation: randomBetween(0, Math.PI * 2),
+          spin:     randomBetween(-0.15, 0.15),
+          alpha:    1,
+          decay:    randomBetween(0.012, 0.025),
+          gravity:  randomBetween(0.15, 0.35),
+          wobble:   randomBetween(0, Math.PI * 2),
+          wobbleSpeed: randomBetween(0.05, 0.12),
+        });
+      }
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles = particles.filter(p => p.alpha > 0);
+
+      for (const p of particles) {
+        p.wobble += p.wobbleSpeed;
+        p.x += p.vx + Math.sin(p.wobble) * 0.5;
+        p.vy += p.gravity;
+        p.y += p.vy;
+        p.rotation += p.spin;
+        p.alpha -= p.decay;
+
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.fillStyle   = p.color;
+
+        if (p.shape === 'star') {
+          drawStar(p.x, p.y, p.size * 0.7, p.rotation);
+        } else {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation);
+          ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+          ctx.restore();
+        }
+      }
+
+      ctx.globalAlpha = 1;
+
+      if (particles.length > 0) {
+        animId = requestAnimationFrame(animateConfetti);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        animId = null;
+      }
+    }
+
+    function launchConfetti(triggerEl) {
+      const rect = triggerEl.getBoundingClientRect();
+      const ox   = rect.left + rect.width  / 2;
+      const oy   = rect.top  + rect.height / 2;
+      if (animId) cancelAnimationFrame(animId);
+      particles = [];
+      spawnParticles(ox, oy);
+      animateConfetti();
+    }
+
+    // ── Toggle ──────────────────────────────────────────────────────────────
     function toggleAbstract(id, btn) {
       const abstract = document.getElementById(id);
       if (abstract.style.display === 'block') {
@@ -109,6 +223,7 @@
       } else {
         abstract.style.display = 'block';
         btn.textContent = 'Abstract ▾';
+        launchConfetti(btn);
       }
     }
   </script>
